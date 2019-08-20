@@ -49,3 +49,7 @@ instance discerningJoker :: Alt f => Discerning (Joker f)
 instance pickyJoker :: Alternative f => Picky (Joker f)
   where
   default = Joker $ empty
+
+class Lazy2 p
+  where
+  defer2 :: forall x y. (Unit -> p x y) -> p x y
