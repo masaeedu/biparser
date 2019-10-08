@@ -2,7 +2,10 @@ module Biparser.Profunctor where
 
 import Prelude
 
+import Control.Alt (class Alt, (<|>))
+import Control.Alternative (class Alternative, empty)
 import Control.Apply (lift2)
+import Data.Either (Either(..), either)
 import Data.Profunctor (class Profunctor)
 import Data.Profunctor.Joker (Joker(..))
 import Data.Profunctor.Star (Star(..))
@@ -22,3 +25,27 @@ instance monoidalStar :: Applicative f => Monoidal (Star f)
   where
   constant = Star pure
   zip (Star f) (Star g) = Star \(a /\ a') -> lift2 (/\) (f a) (g a')
+
+class Profunctor p <= Discerning p
+  where
+  choose :: forall i i' o o'. p i o -> p i' o' -> p (Either i i') (Either o o')
+
+class Discerning p <= Picky p
+  where
+  default :: forall i o. p i o
+
+instance discerningStar :: Functor f => Discerning (Star f)
+  where
+  choose (Star fa) (Star fb) = Star $ either (map Left <<< fa) (map Right <<< fb)
+
+instance pickyStar :: Alternative f => Picky (Star f)
+  where
+  default = Star $ \_ -> empty
+
+instance discerningJoker :: Alt f => Discerning (Joker f)
+  where
+  choose (Joker fa) (Joker fb) = Joker $ (Left <$> fa) <|> (Right <$> fb)
+
+instance pickyJoker :: Alternative f => Picky (Joker f)
+  where
+  default = Joker $ empty

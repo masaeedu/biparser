@@ -2,7 +2,7 @@ module Biparser where
 
 import Prelude
 
-import Biparser.Profunctor (class Monoidal, constant, zip)
+import Biparser.Profunctor (class Monoidal, constant, zip, class Discerning, choose, class Picky, default)
 import Control.Monad.State (StateT(..))
 import Control.Monad.Writer (WriterT(..))
 import Data.Lens (left, right)
@@ -13,6 +13,7 @@ import Data.Profunctor.Choice (class Choice)
 import Data.Profunctor.Cochoice (class Cochoice, unleft, unright)
 import Data.Profunctor.Joker (Joker(..))
 import Data.Profunctor.Star (Star(..))
+import Data.Tuple.Nested (type (/\))
 
 jokerState = Joker <<< StateT
 starWriter = Star <<< map WriterT
@@ -89,6 +90,20 @@ instance monoidalBiparser :: Monoidal Biparser
     where
     parse = zip b1.parse b2.parse
     print = zip b1.print b2.print
+
+instance discerningBiparser :: Discerning Biparser
+  where
+  choose (Biparser a) (Biparser b) = Biparser { parse, print }
+    where
+    parse = choose a.parse b.parse
+    print = choose a.print b.print
+
+instance pickyBiparser :: Picky Biparser
+  where
+  default = Biparser { parse, print }
+    where
+    parse = default
+    print = default
 
 instance cochoiceBiparser :: Cochoice Biparser
   where
