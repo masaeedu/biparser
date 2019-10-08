@@ -23,6 +23,12 @@ newtype Biparser i o =
   , print :: Star (WriterT String Maybe) i o
   }
 
+biparse :: forall i o. Biparser i o -> String -> Maybe (o /\ String)
+biparse (Biparser b) = b.parse # un Joker # un StateT
+
+biprint :: forall i o. Biparser i o -> i -> Maybe (o /\ String)
+biprint (Biparser b) = (b.print # un Star) >>> un WriterT
+
 derive instance newtypeBiparser :: Newtype (Biparser i o) _
 
 type Biparser' v = Biparser v v
