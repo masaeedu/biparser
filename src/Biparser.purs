@@ -7,6 +7,7 @@ import Control.Monad.State (StateT(..))
 import Control.Monad.Writer (WriterT(..))
 import Data.Lens (left, right)
 import Data.Maybe (Maybe)
+import Data.Newtype (class Newtype, un)
 import Data.Profunctor (class Profunctor, dimap)
 import Data.Profunctor.Choice (class Choice)
 import Data.Profunctor.Joker (Joker(..))
@@ -21,6 +22,8 @@ newtype Biparser i o =
   , print :: Star (WriterT String Maybe) i o
   }
 
+derive instance newtypeBiparser :: Newtype (Biparser i o) _
+
 type Biparser' v = Biparser v v
 
 instance functorBiparser :: Functor (Biparser i)
@@ -29,6 +32,26 @@ instance functorBiparser :: Functor (Biparser i)
     where
     parse = map f b.parse
     print = map f b.print
+
+instance applyBiparser :: Apply (Biparser i)
+  where
+  apply (Biparser f) (Biparser b) = Biparser { parse, print }
+    where
+    parse = apply f.parse b.parse
+    print = apply f.print b.print
+
+instance applicativeBiparser :: Applicative (Biparser i)
+  where
+  pure a = Biparser { parse: pure a, print: pure a }
+
+instance bindBiparser :: Bind (Biparser i)
+  where
+  bind (Biparser b) f = Biparser { parse, print }
+    where
+    parse = b.parse >>= (_.parse <<< un Biparser <<< f)
+    print = b.print >>= (_.print <<< un Biparser <<< f)
+
+instance monadBiparser :: Monad (Biparser i)
 
 instance profunctorBiparser :: Profunctor Biparser
   where
