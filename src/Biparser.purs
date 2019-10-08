@@ -10,6 +10,7 @@ import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype, un)
 import Data.Profunctor (class Profunctor, dimap)
 import Data.Profunctor.Choice (class Choice)
+import Data.Profunctor.Cochoice (class Cochoice, unleft, unright)
 import Data.Profunctor.Joker (Joker(..))
 import Data.Profunctor.Star (Star(..))
 
@@ -82,3 +83,14 @@ instance monoidalBiparser :: Monoidal Biparser
     where
     parse = zip b1.parse b2.parse
     print = zip b1.print b2.print
+
+instance cochoiceBiparser :: Cochoice Biparser
+  where
+  unleft (Biparser b) = Biparser { parse, print }
+    where
+    parse = unleft b.parse
+    print = unleft b.print
+  unright (Biparser b) = Biparser { parse, print }
+    where
+    parse = unright b.parse
+    print = unright b.print
