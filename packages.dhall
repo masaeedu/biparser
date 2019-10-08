@@ -123,7 +123,7 @@ let upstream =
 
 let overrides =
   { profunctor =
-      upstream.profunctor // { repo = "https://github.com/masaeedu/purescript-profunctor.git", version = "jokerchoice" }
+      upstream.profunctor // { repo = "https://github.com/masaeedu/purescript-profunctor.git", version = "cochoice" }
   }
 
 let additions = {=}
