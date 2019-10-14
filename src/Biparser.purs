@@ -3,12 +3,11 @@ module Biparser where
 import Prelude
 
 import Biparser.Profunctor (class Monoidal, constant, zip, class Discerning, choose, class Picky, default, class Lazy2)
-import Control.Apply (lift2)
 import Control.Monad.State (StateT(..))
 import Control.Monad.Writer (WriterT(..))
 import Data.Lens (left, right)
 import Data.Maybe (Maybe)
-import Data.Newtype (class Newtype, un, under2)
+import Data.Newtype (class Newtype, un)
 import Data.Profunctor (class Profunctor, dimap)
 import Data.Profunctor.Choice (class Choice)
 import Data.Profunctor.Cochoice (class Cochoice, unleft, unright)

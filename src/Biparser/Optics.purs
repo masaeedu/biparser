@@ -8,13 +8,14 @@ import Data.Either (Either(..))
 import Data.Lens (Prism', prism)
 import Data.Maybe (Maybe, maybe)
 import Data.Profunctor.Choice (class Choice)
+import Data.Profunctor.Cochoice (class Cochoice)
 import Data.Tuple (uncurry)
 import Data.Tuple.Nested (type (/\), (/\))
 
 type Traversal s t a b = forall p. Monoidal p => Lazy2 p => p a b -> p s t
 type Traversal' s a = Traversal s s a a
 
-type ChoiceTraversal s t a b = forall p. Monoidal p => Lazy2 p => Choice p => p a b -> p s t
+type ChoiceTraversal s t a b = forall p. Monoidal p => Lazy2 p => Choice p => Cochoice p => p a b -> p s t
 type ChoiceTraversal' s a = ChoiceTraversal s s a a
 
 unconsed :: forall c a.
@@ -31,5 +32,5 @@ unconsed = prism build match
 eachArray :: forall a. ChoiceTraversal' (Array a) a
 eachArray p = unconsed $ zip p $ defer2 \_ -> (eachArray p)
 
-eachTuple :: forall a. Traversal' (a /\ a) a
-eachTuple p = zip p p
+both :: forall a. Traversal' (a /\ a) a
+both p = zip p p

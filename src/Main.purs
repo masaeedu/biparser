@@ -4,7 +4,7 @@ import Prelude
 
 import Biparser (Biparser(..), Biparser', biparse, biprint, jokerState, starWriter)
 import Biparser.Consable (cons)
-import Biparser.Optics (unconsed)
+import Biparser.Optics (both, unconsed)
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
@@ -70,8 +70,8 @@ instance showTwoChars :: Show TwoChars
   where
   show = genericShow
 
-twochars :: Iso' (Char /\ Char) TwoChars
-twochars = iso (\(c1 /\ c2) -> TwoChars c1 c2) (\(TwoChars c1 c2) -> c1 /\ c2)
+twoCharsAsTuple :: Iso' (Char /\ Char) TwoChars
+twoCharsAsTuple = iso (\(c1 /\ c2) -> TwoChars c1 c2) (\(TwoChars c1 c2) -> c1 /\ c2)
 
 m2e :: forall a b. Iso (Maybe a) (Maybe b) (Either Unit a) (Either Unit b)
 m2e = iso bwd fwd
@@ -103,12 +103,19 @@ test = do
 
 main :: Effect Unit
 main = do
-  logShow $ biparse test "foo"                                                 -- (Just (Tuple (TwoChars 'f' 'o') "o"))
-  logShow $ biprint test 'x'                                                   -- (Just (Tuple (TwoChars 'x' 'x') "xx"))
-  logShow $ biparse (twochars <<< lcmap (\(TwoChars c1 _) -> c1) $ test) "foo" -- (Just (Tuple (Tuple 'f' 'o') "o"))
+  logShow $ biparse test "foo"                                                        -- (Just (Tuple (TwoChars 'f' 'o') "o"))
+  logShow $ biprint test 'x'                                                          -- (Just (Tuple (TwoChars 'x' 'x') "xx"))
+  logShow $ biparse (twoCharsAsTuple <<< lcmap (\(TwoChars c1 _) -> c1) $ test) "foo" -- (Just (Tuple (Tuple 'f' 'o') "o"))
 
   let dc = digitAsChar digit
   let cons2 c1 c2 = c1 `cons` (c2 `cons` "")
+  let twochars = cons2 <$> dc <*> dc
 
-  logShow $ biparse (cons2 <$> dc <*> dc) "1234" -- (Just (Tuple "12" "34"))
-  logShow $ biparse (cons2 <$> dc <*> dc) "1f34" -- Nothing
+  logShow $ biparse twochars "1234" -- (Just (Tuple "12" "34"))
+  logShow $ biparse twochars "1f34" -- Nothing
+
+  let tupleAsTwoChars = re twoCharsAsTuple
+  let fourchars = both <<< tupleAsTwoChars <<< both
+
+  logShow $ biparse (fourchars next) "54321" -- (Just (Tuple (Tuple (TwoChars '5' '4') (TwoChars '3' '2')) "1"))
+  logShow $ biprint (both digit) (D5 /\ D4)  -- (Just (Tuple (Tuple D5 D4) "54"))
